@@ -1,0 +1,195 @@
+# Model Assumptions  
+
+The calorie model makes a number of assumptions which are described in this chapter, these  assumptions are split into 8 catagories; assumptions are made concerning [Calorie Reduction], [Diseases], [Comorbidities], [QALYs], [Care Costs], [Economic Output], [Deographics and BMI] and [Technical] areas of the model. A description of each individual assumption is given including the reasons for and rational behind it. For some assumptions an assessment of the assumptions validity is also give.
+
+##Calorie Reduction
+
+This biggest and most important assumption in the calorie model is the assumption about how much the policy being modelled reduces calorie consumption. This is an assumption that must be made to meaningfully run the model, it is unavodable. The assumption is based on the best estimates in the relevant academic literature and is subject to sensitivity analysis.
+
+##Diseases
+
+The way dieases are modelled makes a number of assumptions.
+
+**Diseases included in the model**
+
+The calorie model only includes 5 diseases; Diabetes, CHD, Stroke, Breast Cancer and Colorectal Cancer. This makes the assumption that these are the only 5 diseases that have an incidence rate that is variable with respect to BMI.
+
+This assumption is a known simplification, many other diseases are known to also have obesety as a risk factor. This simplification to only 5 diseases is made due to the lack of currently available data, the required incidence uplift and cost data is not currently avalible for other diseases. If in the future data is available showing other diseases have an incidence rate that is variable with respect to BMI, that obesity is a risk factor for the disease, and there is sufficient incidence and cost data, these additional diseases may be added to the model.
+
+This simplification ignores the potential benifits due to a reduction in the number of individuals with other obesity related diseases, resulting in an underestimation in benifits from obeasity reduction by the model.
+
+**Disease Mortality Rates**
+
+The calorie model assumes that the disease mortality rates, given by the disease to dead transition probabilities, increase for obese individuals. These transition probabilities increase from a baseline incidence rate to a new higher incidence rate for people with a BMI over 22, with the size of the increase varying according to how much over 22 the individuals BMI is. This makes two assumptions; that the diseases included in the model have an incidence rate that increases linnearly with BMI and that this higher incidence rate can be calculated by multiplying the base incidence rate of the disease by an incidence rate increment due to a high BMI.
+
+- A high BMI is a documented risk factor for the diseases included in the model so it is valid to assume that the incidence rate does increase with BMI, but the linnear way this increased incidence rate is calculated may be misleading. For example, the increased incidence may be a step function with respect to BMI, not a linnear one.  
+
+- The base incidence rate is an average of the entire population, including obese individuals. To then multiply this by an incidence increment due to high BMI could give an incidence rate for obese individuals that is too high, they higher obese incidence rate double counts the incidence of these diseases.
+
+**Disease Age**
+
+The calorie model assumes that only people over 18 can make the healthy to disease transition, that only adults get ill. This assumption is made due to a lack of data on disease incidence rates in individuals under 18. If in the future data is available showing disease incidence rates in people under 18, with data on the incidence increase due to a high BMI, then the healthy to disease transition may be applied to individuals under 18.
+
+This means that the model cannot give absolute numbers for disease incidence in individuals under 18 and will not model disease effects due to lower obesity in individuals under 18, resulting in a slightly higher QALY count and slightly lower NHS costs in the model. However the negative health effects of obesity are mostly seen in older age, and so not modelling disease in individuals under 18 should have a very minimal effect.
+
+**Chronic Disease**
+
+The calorie model assumes that people do not recover from diseases, no individual in the model makes the disease to healthy transition. This assumption is made due to a lack of data on disease recovery rates. If in the future data is available on these recovery rates then disease to healthy transitions may be included in the model.
+
+This means that the model will slightly underestimate the benefits of a policy. However, as the results of the model are calculated by taking the difference between two models, and both models make this assumption, the assumption should have a very minimal impact.
+
+##Comorbidities
+
+The way comorbidities are modelled makes a number of assumptions.
+
+**Downward Disease Flow**
+
+The calorie model assumes a downward flow in diseases from the least severe to most severe. This means that an individual in the model with a less severe disease can develop a more severe disease but not the other way around. This downward flow is shown in figure \@ref(fig:fig-dandc).
+
+**Disease to Disease Transition Probabilities**
+
+The calorie model assumes that most disease to disease transition probailities are the same as the relevent healthy to disease transition probsbility. This means that the probability of an individual with a less severe disease developing a more severe disease is the same as the probability of a heathy individual developing the more severe disease, ignoring the fact that the less severe disease may be a risk factor for the more severe disease. 
+
+However, the transition probabilities of the diabetes to CHD and diabetes to stroke transitions are increased in comparison to the healthy to CHD and a healthy to stroke transitions. This is done due to the known risk factor poised by diabetes for both CHD and stroke. 
+
+This assumption is made due to a lack of currently avalible data about the risk factors of the diseases included in the model. If in the future data is avalible on the risk factors of other diseases included in the model then the disease to disease transition probabilities may be updated.
+
+**State Memory**
+
+The calorie model assumes no state memory, that if an individual moves to a disease state no account is taken of whether the individual was previously in a different disease state or the healthy state. This means that the model ingores the extra costs and QALY detriment that may result from comorbidities as well as the cost and QALY detriment of the previous disease, treating each disease as a seperate unique state.
+
+##QALYs
+
+The way QALYs are modelled makes a number of assumptions.
+
+**QALY Age and Sex Detriment**
+
+The calorie model assumes that the QALY of an individual in the healthy state is not 1, the model assumes that an individuals QALY value is age and sex dependant. That the QALY value for older individuals in the healthy state is lower than the QALY value of younger individuals and the exeact gradient of this QALY 'slop' is sex dependant. For example, a 60 year old male in the healthy state has a QALY value of < 0.8, however a 60 year old female has a QALY vaalue of > 0.8 (Fig.\@ref(fig:fig-QALYagesex)).
+
+```{r fig-QALYagesex, fig.cap='The age and sex QALY detrement curves', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
+QALY <- data.frame(age = 1:100) %>% 
+  mutate(male = case_when(age < 25 ~ 0.935,
+                          age < 35 ~ 0.93,
+                          age < 45 ~ 0.914,
+                          age < 55 ~ 0.845,
+                          age < 65 ~ 0.777,
+                          age < 75 ~ 0.781,
+                          TRUE     ~ 0.753),
+         female = case_when(age < 25 ~ 0.943,
+                            age < 35 ~ 0.925,
+                            age < 45 ~ 0.909,
+                            age < 55 ~ 0.849,
+                            age < 65 ~ 0.815,
+                            age < 75 ~ 0.777,
+                            TRUE     ~ 0.712))
+
+QALY %>% 
+  gather(sex,QALY,-age) %>% 
+  ggplot(aes(age,QALY,col = sex)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(title = 'QALY Value',
+       subtitle = 'Age and Sex dependance') +
+  theme_bw()
+```
+
+This assumption is made to account for the general increase in the prevalence of diseases amonge older individuals. Individuals in the healthy state are not all in full health, some of them  have diseases other than the 5 included in the model. This is an assumption common to other population health models used by DHSC.
+
+**QALY Disease Detriment**
+
+The calorie model calculates the QALY values of inividuals in the disease state using a QALY detriment for each individual disease. This is done by reducing the QALY value of an individual of that age and sex in the healthy state by the relevent disease QALY detriment to give the QALY value of an individual in the deases state (Fig.\@ref(fig:fig-QALYdetrement)). This QALY disease detrement method takes account of the fact that the QALY value of an individual is both age and sex dependent as well as state dependent.
+
+```{r fig-QALYdetrement, fig.cap='The disease QALY detrement curve for males', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
+QALY <- data.frame(age = 1:100) %>% 
+  mutate(male = case_when(age < 25 ~ 0.935,
+                          age < 35 ~ 0.93,
+                          age < 45 ~ 0.914,
+                          age < 55 ~ 0.845,
+                          age < 65 ~ 0.777,
+                          age < 75 ~ 0.781,
+                          TRUE     ~ 0.753),
+         female = case_when(age < 25 ~ 0.943,
+                            age < 35 ~ 0.925,
+                            age < 45 ~ 0.909,
+                            age < 55 ~ 0.849,
+                            age < 65 ~ 0.815,
+                            age < 75 ~ 0.777,
+                            TRUE     ~ 0.712))
+
+QALY %>% 
+  select(-female) %>% 
+  rename(healthy = male) %>% 
+  mutate(disease = healthy - 0.11) %>% 
+  gather(state,QALY,-age) %>% 
+  ggplot(aes(age,QALY,col = state)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(title = 'QALY Value',
+       subtitle = 'Disease QALY Detrement for males') +
+  theme_bw()
+```
+
+**The cost of a QALY**
+
+The calorie model assumes that the cost of a QALY is &pound;60,000. This is the value used internally by DHSC.
+
+##Care Costs
+
+The way care costs (NHS and social) are modelled makes a number of assumptions.
+
+**Constant NHS costs**
+
+The calorie model assumes an average per year NHS cost of a disease. This ignores the time variability in the costs of disease treatment. The treatment cost of some diseases may largely occur in the first year of the disease with a low treatment cost in subsequent years meaning that an average per year cost could give misleading results for some diseases.
+
+**The value of NHS costs**
+
+The calorie model assumes that the value of a QALY to the NHS is &pound;15,000. This is the resource allocation value used by NICE to assign NHS resources and means that NHS costs are multiplied by 4 to be equivalent to other costs (as a QALY is valued at &pound;60,000). This is a common assumption made internally in DHSC.
+
+**Social Care costs**
+
+The calorie model makes two assumptions about social care costs; that no social care costs are incurred for people under 50 and that the probability that a person will require social care only depends on age and BMI. This means that the probability of requiering social care does not vary depending on whether an individual is in the healthy or a disease state, a healthy overweight 70 year old has the same probability of needing social care as an unhealthy overweight 70 year old.
+
+ * The age condition, that people under 50 have no social care costs, will have only a very minimal impact on the model as there are very few people under 50 who incur any social care costs. 
+ 
+ * The fact that the probability of requiring social care does not depend on disease state is a known simplification of the model. This simplification is made due to a lack of currently avalible data about the increased probability of requiring social care due to disease. If in the future data is available on the increased probability of requiring social care due to a disease, then the way that the probability of requiring through social care is calculated by the model may be modified. 
+ As the way that the probability of requiring social care is calculated by the model depends on BMI, and the increase in disease states in the model is due to BMI, this simplification should be partly accounted for and so have a minimal impact. The impact of this simplification will be to slightly under model the reduction in social care costs.
+
+##Economic Output
+
+The way the economic output of individuals is modelled makes a number of assumptions.
+
+**Employment Rate**
+
+The calorie model assumes that the employed population of a demographic group is given by the population of that demographic group in the healthy state and all disease states multiplied by the average employment rate of that demographic group. This assumption takes no account of the fact that the demographic groups in the disease state may have a lower employment rate that those in the healthy state (due to sick leave or early retierment due to illness). The impact of this assumption will be to slightly under model the increase in economic output.
+
+**Earnings**
+
+The calorie model assumes that the economic output of an demographic group is given by the average salary of that demographic group multiplied by the employed population of that demograpic group. The use of an average salary is a simplification that may lead to misleading results for some targeted policies. 
+
+##Deographics and BMI
+
+The way demographics and HSE BMI data are included in the model makes a number of assumptions.
+
+**Accurate and Time Stable Population projections**
+
+The calorie model assumes that the population and demograpic projections made by the ONS are accurate and stable. These population projection are used to calculate the initial conditions and demographic projection (the demographics used as people age through model cycles or for children who enter the model in future years) used by the model. The model uses population projections from 2016, with 2016 treated as the first year of the model, assuming that there has been no significant change in the population demographics since then.
+
+When new population projections are releast by ONS these numbers will be updated.
+
+**Time Stable BMI data in HES**
+
+The calorie model assumes that the BMI data in the HSE is stable over time, that the population proportions of the BMI catagories does not change over time. This assumes that in the future there will be no large change in the BMI profile of the population.
+
+The way the BMI trajectaries for the model are calculated assumes that in the future the population proportions of a specific BMI category of a specific age and sex group will be the same as the current population proportion of the same BMI catagory in the same age and sex group. This assumption has to be made as there is no way to accuratly predict the future BMI profile of the population, the best solution is to assume - as the model does - that the populations future BMI profile is the same as the current profile.
+
+##Technical
+
+A number of technical assumptions are made by the model.
+
+**Hall Equations**
+
+The calorie model uses the Hall equations **(find ref)** to calculate the BMI for the treatment group from a given calorie intake, assuming that these equations are of good quality. These equations are used by similar public health models and are the subject of adademic papers **(find ref)**.
+
+**Packages Used**
+
+The calorie model uses the R packages [heemod](https://cran.r-project.org/web/packages/heemod/index.html) and [DeSolve](https://cran.r-project.org/web/packages/deSolve/index.html). therefore assuming that these packages are both of good quality. Both packages are on [CRAN](https://cran.r-project.org/) and are the subject of [academic papers](https://arxiv.org/abs/1702.03252).

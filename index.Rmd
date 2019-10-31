@@ -1,0 +1,40 @@
+---
+title: "DHSC Calorie Model"
+author: "Global and Public Health Analysis Branch, COP"
+date: 'October 2019'
+site: bookdown::bookdown_site
+documentclass: book
+output:
+#  bookdown::pdf_book: default
+   bookdown::gitbook: 
+     config:
+       download: null 
+       toc:
+         collapse: section
+         scroll_highlight: yes
+       mathjax: default
+---
+
+```{r include=FALSE}
+# run with bookdown::render_book('index.Rmd', 'all')
+
+if (!require(bookdown)) install.packages('bookdown')
+library(bookdown)
+if (!require(knitr)) install.packages('knitr')
+library(knitr)
+if (!require(kableExtra)) install.packages('kableExtra')
+library(kableExtra)
+if (!require(tidyverse)) install.packages('tidyverse')
+library(tidyverse)
+if (!require(DiagrammeR))install.packages("DiagrammeR")
+library(DiagrammeR)
+
+```
+
+# Overview {-}
+
+This document provides an overview of and documentation for the Department of Health and Social Care (DHSC) calorie model. The calorie model is a model used internally within DHSC to evaluate the economic effects of obesity focused public health interventions. The model is developed by DHSC with input from Public Health England (PHE) and development direction provided by a model steering group chaired by the models Senior Responsible Officer (SRO).
+
+The model is a DHSC business-critical model and as such is subject to quality assurance governance by the DHSC Analytical Model Oversite Committee (AMOC).
+
+

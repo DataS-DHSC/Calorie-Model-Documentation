@@ -1,0 +1,136 @@
+# Model
+
+The calorie model has two main steps; the pre-model calculation of input data for the model ([initial conditions][Initial Conditions] and [BMI trajectories][BMI Trajectories]) and the [markov model][Markov Model].
+
+## Initial Conditions
+
+To initiate the model a set of initial conditions are established that define the starting population of all BMI catagories in all age and sex groups. These starting populations are used for both the no intervention (counterfactual) and intervention (treatment) groups. To do this we use population demographics data from the Office for National Statistics (ONS) and combined with data from the Health Survey for England (HSE) on Body Mass Index (BMI). 
+
+The HSE data contains information on the BMI profile of all the different age and sex groups in the UK population, this BMI profile is split into 5 BMI catagories ranging from category 1 whcih is underweight to category 5 which is morbidly obease. Each of these BMI categories is given a relative proportion, according to the proportion of that age and sex group contained within that BMI catagory. These proportions are multiplied by the total population of that age and sex group, given by the demographic data from the ONS, to give an initial population of each BMI category in each age and sex group.
+
+It is these BMI category populations that provide the model initial conditions. The initial conditions for both the counterfactual and treatment groups are the same.
+
+## BMI Trajectories
+
+The model also requires a set of BMI projections that define how the population of a demographic (age, sex and BMI catagory) group evolves over time, dictating how the BMI of individuals in the model evolves as the model develops through multiple model steps. It is these population projections that will be different between the counterfactual and treatment groups, the two models start from the same point but diverge as they develop through multiple model steps.
+
+The counterfactual BMI projections are calculated by combining population projections from the ONS with BMI data from HSE to give the projected BMI trajectories if there is no policy intervention. This is done in the same way as described in the [initial conditions][Initial Conditions] section, but using future projected population data rather than current population data. 
+
+The treatment group BRI projections are calculated by modifying the counterfactual BMI projections. To do this each BMI category in the counterfactual is given a reference calorie intake, this is the average calorie intake for a person in that BMI category. This reference intake is then reduced by the calorie reduction estimate for the policy being modelled. This new reduced calorie intake is used as an input to the [Hall equations][Technical] to calculate a new BMI.
+
+## Markov Model
+
+The model can be simplified to a three sate markov chain model (Fig.\@ref(fig:fig-markov)), the three [states][States] are healthy, disease and dead. People enter the model in the healthy state, in the demographics defined by the [initial conditions][Initial Conditions]. The model then steps forward, each model step representing one year. After each step the people in the model will have aged one year and so move to the BMI projected for their demographic group in the [BMI trajectories][BMI Trajectories] for the next year. After each model step there is also a chance that the people in the model will have transitioned to a different model state, these chances are defined by the model [transition probabilities][Transition Probabilities].
+
+```{r fig-markov, fig.cap='Overview of the Markov Model', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
+if (!require(DiagrammeR))install.packages("DiagrammeR")
+library(DiagrammeR)
+
+grViz("
+      
+      digraph boxes_and_circles{
+      node[shape = circle]
+      'Healthy'
+      'Disease'
+      '  Dead  '
+
+
+      edge[]
+      'Healthy'->'Disease' [label = 'THDi']
+      'Healthy'->'  Dead  ' [label = 'THDe']
+      'Disease' -> '  Dead  ' [label = 'TDiDe']
+      }
+      ")
+```
+
+### States
+
+The model has three main states; healthy, disease and dead (Fig.\@ref(fig:fig-markov)). Each of these states have a different set of parameters that giving state effects (Economic output, QALYs, NHS costs and Social care costs). The total effect modeled by the calorie model is given by the sum of all these individual sate effects. These state parameters are given in the [state.csv file][Model Parameters and Data -`/heemod data`] and are described below;
+
+#### Healthy State {-}
+
+People in this state are considered to be in full health, the parameters and effects of this state are:
+
+- **NHS costs - all people in this state incure no NHS costs.**
+
+- **QALYs - all people in this state make a full QALY contrabution.**
+
+This has a positive effect on the total economic effects of the model, by adding to the model QALY count. This positive effect is eqaul to the average QALY score of an individual in the healthy state of that age and gender multiplied by the healthy state population at that age and gender. This positive effect is adjusted by the health discount rate according to how many model cycles in the future it is acrude in.
+
+This QALY count is give in GBP using a cost per QALY of **&pound;60,000**.
+
+- **Social care costs - some people in this state incure social care costs.**
+
+This has a negative affect on the total economic effects of the model, by adding to the model social care costs. This negative effect is equal to the average annual per user social care costs multiplied by the probability of an individual of that age, sex and BMI needing social care and the healthy state population of that age, sex and BMI. This negative effect is adjusted by the general discount rate according to how many model cycles in the future it is acrude in.
+
+The probability of needing social care increases as a persons age and BMI increases.
+
+- **Economic output - some people in this state are economicaly active.** 
+
+This has a positive effect on the total economic effects of the model, by adding to the model economic output. This positive effect is equal to the average salary for an age group multiplied by the employment rate for the age group and the healthy state population at that age. This positive effect is adjusted by the general discount rate according to how many model cycles in the future it is acrude in. 
+
+This only applies to people of working age, older than 18 and younger than 65.
+
+#### Disease State {-}
+
+People in this state are considered to have one of the [diseases included in the model][Different Diseases and Comorbidities], the parameters and effects of this state are:
+
+- ** NHS costs - all people in this state incure the average NHS cost for their disease.**
+
+This has a negative affect on the total economic effects of the model, by adding to the model NHS costs. This negative effect is equal to the average annual per patient cost to the NHS of a specific disease multiplied by the specific disease state population. This negative effect is adjusted by the health discount rate according to how many model cycles in the future it is acrude in. 
+
+NHS cost are increased by a factor of **4** to give them equivlence with other costs. This is done inline with the factor of 4 difference between the NICE resource allocation value of a QALY (&pound;15,000) and the general cost of a QALY (&pound;60,000).
+
+- **QALYs - all people in this state have a reduced QALY cotrabution**
+
+This has a positive effect on the total economic effects of the model, by adding to the model QALY count. However, the QALY count is reduced reative to what it would be if the individual was in the healthy state. The new QALY count is eqaul to the average QALY score of an individual of that sex and age in the healthy state reduced by the QALY detrement of the specific disease and multiplied by the age and sex group population of the specific disease state. This negative effect is adjusted by the health discount rate according to how many model cycles in the future it is acrude in. 
+
+QALY detriments are the amount a specific disease reduces an individuals QALY value from what it would be if that indervidual was in the healthy state.
+
+This QALY count is give in GBP using the QALY cost of **&pound;60,000**.
+
+- **Social care costs - some people in this state incure social care costs.**
+
+This has a negative affect on the total economic effects of the model, by adding to the model social care costs. This negative effect is equal to the average annual per user social care costs multiplied by the probability of an individual of that age and BMI needing social care and the disease state population of that age and BMI. This negative effect is adjusted by the general discount rate according to how many model cycles in the future it is acrude in.
+
+The probability of needing social care increases as a persons age and BMI increases.
+
+- **economic output - some people in this state are economicaly active.** 
+
+This has a positive effect on the total economic effects of the model, by adding to the model economic output. This positive effect is equal to the average salary for an age group multiplied by the employment rate for the age group and the disease state population at that age. This positive effect is adjusted by the general discount rate according to how many model cycles in the future it is acrude in. 
+
+This only applies to people of working age, older than 18 and younger than 65.
+
+#### Dead State {-}
+
+People in this state are considered to be dead. This state has no parameters and so its population has no direct economic effects.
+
+### Transition Probabilities
+
+The model transition probabilities give the probabilities of a person moving between the three states, are given as $T^{HDi}$, $T^{HD}$ and $T^{DiDe}$ in figure \@ref(fig:fig-markov). These transition probabilities are given in the [tm.csv file][Model Parameters and Data -`/heemod data`] and are described below;
+
+- $T^{HDi}$ - the probability a person will move from the healthy state to the disease state. This probability is given by the known prevalence of the [diseases included in the model][Different Diseases and Comorbidities] and varries according to a person's age, sex and BMI.
+
+The $T^{HDi}$ probabilities are higher if a person is obese. It is the change in the number of people subject to these higher $T^{HDi}$ probabilities due to the change in the amount of obesity in the population due to the policy being modelled that is the main driver for the economic effects modelled. The policy interventions modelled are designed to have the effect of reducing the amount of obesity in the population, therefore decreasing the number of people who make the healthy state to disease state transition, decreasing the number of unhealthy people in the model and increasing the number of healthy people in the model. Healthy people have a higher QALY count and people in the disease state incure NHS costs.
+
+- $T^{HDe}$ - the probability a person will move from the healthy state to the dead state. This probabilty is given by the background population mortality rate provided by the ONS and is fixed with respect to BMI.
+
+- $T^{DiDe}$ - the probability a person will move from the disease state to the dead state. This probability is given by the mortality rate of [diseases included in the model][Different Diseases and Comorbidities] and is fixed with respect to BMI
+ 
+### Different Diseases and Comorbidities
+
+#### Different Diseases {-}
+
+The disease state is actualy many different states each representing a different disease (Fig.\@ref(fig:fig-dandc)). 5 diseases are currently included in the model; Diabeties, CHD, Stroke, Breast Cancer and Colorectal Cancer. So the disease state is actualy 5 different states. All 5 states have different parameters, effects and transition probabilities, these are of the same structure as the [state parameters and effects][Disease State] and [transition probabilities][Transition Probabilities] described above but modified for the specific disease or comorbidities. Exact detail are given in the [state.csv] and [tm.csv] files.
+
+```{r fig-dandc, fig.cap='Different Diseases and Comorbidities', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
+include_graphics(rep("images/dandc.png"))
+```
+
+#### Comorbidities {-}
+
+The model deals with comorbidities by allowing disease to disease transitions, such that inderviduals with one disease can get a second disease, however when an indervidual gets a second disease the model 'forgets' that they had the first disease. Therefore, disease to disease transitions are only posible in a downward flow from the least sever condition (diabeties) to the most severe condition (stroke). These disease to disease transitions are represented by purple arrows in figure \@ref(fig:fig-dandc).
+
+## Model Results
+
+The results of the calorie model are calculated by taking the difference between two different models; the standard, or base, model which uses the counterfactual BMI trajectories to model the economic effects if no policy is applied and the new model which uses the treatment group BMI trajectories to model the economic effects if a policy is applied. Each run of the calorie model involves the running of both these versions of the model.

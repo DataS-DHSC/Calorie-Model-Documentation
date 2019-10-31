@@ -1,0 +1,61 @@
+# Introduction {#intro}
+
+The calorie model is used internally within DHSC to evaluate the long term economic effects of obesity focused public health interventions such as:
+
+* Energy Drinks regulation
+* Out of Home Calorie Labelling regulation
+* Price promotions regulation
+* Location promotions regulation
+* Advertising restrictions regulation
+
+The total economic effects modelled are given by the four outputs of the model:
+
+ * **Economic output**, higher economic output due to a larger and more productive workforce.
+ * **QALYs**, higher QALY count to do a healthier and longer lived population.
+ * **NHS costs**, lower NHS costs due to a healthier population.
+ * **Social care costs**, lower social care costs due to a healthier population.
+ 
+A high level overview of the calorie model is given in figure \@ref(fig:fig-model-overview).
+
+```{r fig-model-overview, fig.cap='Calorie Model Overview \n (Black rectangles indicate model steps and red ovals indicate the economic effects modelled)', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
+
+grViz("
+      digraph boxes_and_circles{
+      node[shape = box]
+      'Population Sample'
+      'Curent Diatry Consumption'
+      'Reduction in Calorie Intake from Policy'
+      'New Calorie Intake'
+      'New Weight and BMI'
+      'Fewer Deaths due to Obesaty reladed disease'
+      'Fewer overweight and obese people'
+
+      'Larger Workforce'
+      'Reduction in Obesaty Related Disease'
+      'Reduction in Hospitalisations\n due to Obesety Related Disease'
+      
+      node[color = red
+          shape = oval]
+      'Increase in QALYs'
+      'Increase in Economic Output'
+      'Reduction in NHS Costs'
+      'Reduction in Social Care Costs'
+
+      edge[]
+      'Population Sample'->'Curent Diatry Consumption'
+      'Curent Diatry Consumption'->'Reduction in Calorie Intake from Policy'
+      'Reduction in Calorie Intake from Policy'->'New Calorie Intake'
+      'New Calorie Intake'->'New Weight and BMI';
+      'New Weight and BMI'->'Fewer Deaths due to Obesaty reladed disease'
+      'New Weight and BMI'->'Fewer overweight and obese people'
+      'Fewer Deaths due to Obesaty reladed disease'->'Larger Workforce'
+      'Fewer Deaths due to Obesaty reladed disease'->'Increase in QALYs';
+      'Larger Workforce'->'Increase in Economic Output'
+      'Fewer overweight and obese people'->'Reduction in Obesaty Related Disease'
+      'Reduction in Obesaty Related Disease'->'Reduction in Hospitalisations\n due to Obesety Related Disease'
+      'Reduction in Obesaty Related Disease'->'Reduction in Social Care Costs'
+      'Reduction in Hospitalisations\n due to Obesety Related Disease'->'Reduction in NHS Costs'
+      'Reduction in Obesaty Related Disease'->'Increase in QALYs'
+      }
+      ")
+```

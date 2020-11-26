@@ -1,28 +1,25 @@
 # Usage 
 
+## Running the Model - Basic
 
-## Running the Model
+To run the calorie model you must have [R](https://cran.rstudio.com/) and [RStudio](https://rstudio.com/products/rstudio/download/#download) installed (if in DHSC you can do this via a standard [software request](https://in.dh.gov.uk/how-to/seek-it-support/it-help-and-support/) and also must fix projects by running the solution in [section C4](https://datas-dhsc.github.io/coding_principles_book/r-at-dhsc.html#r_projects))
 
-To run the calorie model you must have R installed (if in DHSC you must have fixed projects by running the solution [in section 1 here](http://51.140.241.138/github/mattm_dhsc/r-at-dhsc/src/branch/master/why_projects.md))
-
-1. Copy the folder `\\ims.gov.uk\DHSC\London\SKH\NW012\EOR3\COP\Calorie Model - Proposed file structure\Calorie Model 2 - Full copy` to your local machine and rename it as a folder called `[Policy]-[yyyymmdd]-[analyst name]`. For example, if Edward Beake was running a model simulation for the advertising policy on 21/10/2019 the copy of the folder `Calorie Model 2 - Full copy` would be renamed `Advertising-20191021-EBeake`. (This will take a few minutes).
+1. Copy the folder `\\ims.gov.uk\DHSC\London\SKH\NW012\EOR3\COP\Calorie Model\Calorie Model `r version_number`` to your local machine and rename it as a folder called `[Policy]-[yyyymmdd]-[analyst name]`. For example, if Edward Beake was running a model simulation for the advertising policy on 21/10/2019 the copy of the folder `Calorie Model `r version_number`` would be renamed `Advertising-20191021-EBeake`. (This will take a few minutes).
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
 
-src_files <- list.files("../../Calorie Model 2 - Full copy/", recursive = T, full.names = T,
+src_files <- list.files("../../Calorie Model 3/", recursive = T, full.names = T,
                        pattern = "\\.R$")
 
 
 find_libraries <- function(file){
  
 
-  src <- read_lines(file) 
-  str_subset(src, "(library|require)") %>%
-    
-    str_extract("\\(\\w*\\)") %>%
-    str_remove("\\(") %>%
-    str_remove("\\)") 
+  read_lines(file) %>%
+    str_subset("(library|require)") %>%
+    str_remove("(library|require)") %>%
+    str_extract("[a-zA-Z0-9]{3,}")
   
   
 }
@@ -33,37 +30,65 @@ libraries <- map(src_files,find_libraries) %>%
   str_replace_all("(^|$)", "'") %>%
   str_flatten(collapse = " , ")
 
-install_string <- str_glue("install.packages(", libraries, ")")
+install_string <- str_glue("install.packages(c(", libraries,"))")
 ```
 
-2. Install the required packages: `r install_string`.
+2. Install the required packages by running this code in the R console: **`r install_string`**.
 
+3. Open the R project file `Calorie Model `r version_number`.Rproj` in the renamed folder.
 
-
-3. Open the R project file `Calorie Model 2 + git.Rproj` in the renamed folder.
-
-4. From the `/src/Model code` sub folder open the main code file `Calorie Model 2.0.2.R`, if this code file is not open.
-
-```{r fig.cap='Select main code folder', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
-include_graphics(rep("images/Calorie Model - main folder.png"))
-```
-
-```{r fig.cap='Open main code file', out.width='100%', fig.asp=.75, fig.align='center',echo=FALSE,message=FALSE,warning=FALSE}
-include_graphics(rep("images/Calorie Model - main file.png"))
-```
+4. From the `/src/Model code` sub folder open the main code file `Calorie Model `r version_number`.R`, if this code file is not open.
 
 5. Run the model with `Ctrl+1` then `Ctrl+A+ENTER`
 
-6. Follow the on screen instructions in the pop up boxes.
+6. Follow the on screen instructions in the pop up boxes. These pop up boxes allow the user to change all standard model parameters, before starting a model run you should have answers to all these questions:
 
-A full model run will take a few minutes, the exact time the model takes will depend on the parameters specified the step 6 (NOTE: Some warning messages - these appear in red on the R console - are expected and should not concern the user.). After the model is finished:
+    * do the model cohorts include adults,
 
-* The model will be saved, using the name specified in the last pop up box of step 6, as an `.rds` file in the new sub-folder `model`. This file can be loaded into R and contains the complete details of your model
+    * what is the evaluation period of the policy,
+
+    * what is the lifetime of the policy (this is the length of time the policy is active and effects new model cohorts, once affected by the policy a cohort is permantly affected - for further information see [Policy Permanence]),
+    
+    * is the NHS oppertunity cost multiplier used (a 4 x multiplier applied to NHS costs),
+
+    * what are the calorie reduction for the 8 standard groups:
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE,fig.width=5}
+ kable(data.frame(Sex = c('Male',
+                           'Male',
+                           'Male',
+                           'Male',
+                           'Female',
+                           'Female',
+                          'Female',
+                          'Female'),
+                  Age.Catagory = c('4 - 10',
+                                   '11 - 18',
+                                   '19 - 64',
+                                   '65+',
+                                   '4 - 10',
+                                   '11 - 18',
+                                   '19 - 64',
+                                   '65+'))) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12,full_width = FALSE) 
+```
+
+For more advanced functionality, such as using different calorie reduction age groups, changes will need to be 'hard coded' into the model and the model developer consulted.
+
+A full model run will take approximatly 20 minutes, the exact time the model takes will depend on the parameters specified in step 6 (NOTE: Some warning messages - these appear in red on the R console - are expected and should not concern the user).
+
+After the model is finished:
+
+* The model will be saved, using the name specified in the last pop up box of step 6, as an `.rds` file in the new sub-folder `model`. This file can be loaded into R and contains the complete details of your model.
 
 * The model summary report will be saved in the new sub-folder `report`.
 
-* Delete the sub-folder `data` from the folder `[Policy]-[yyyymmdd]-[analyst name]` and archive the entire folder `[Policy]-[yyyymmdd]-[analyst name]`, by moving it to the archive folder `\\ims.gov.uk\DHSC\London\SKH\NW012\EOR3\COP\archive`, this is done to maintain a full audit trail of the model run.
+* Archive the entire folder `[Policy]-[yyyymmdd]-[analyst name]` by moving it to the archive folder `\\ims.gov.uk\DHSC\London\SKH\NW012\EOR3\COP\Calorie Model\Model Run Archive\[Policy]`, this is done to maintain a full audit trail of the model run.
+
+## Running the Model - Advanced
+
+Advanced runs of the model can be done by hard coding into the file `Calorie Model `r version_number`.R`.
 
 ## Developing the Model
 
-The majority of molded developments, updating states and transition probabilities to add new diseases or change the obesity related prevalence increase, are made in the [model input files][Model Parameters and Data -`/heemod data`].
+The majority of model developments, updating states and transition probabilities to add new diseases or change the obesity related prevalence increase, are made in the [model input files][Model Parameters and Data -`/heemod data`].

@@ -1,6 +1,6 @@
 # configure your name and email if you have not done so
-git config --global user.email "matthew.malcher@dhsc.gov.uk"
-git config --global user.name "Matthew Malcher"
+git config --global user.email "edward.beake@dhsc.gov.uk"
+git config --global user.name "Edward Beake"
 
 # clone the repository to the book-output directory
 git clone -b gh-pages \
